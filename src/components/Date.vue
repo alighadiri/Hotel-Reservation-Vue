@@ -1,34 +1,47 @@
 <template lang="pug">
 	v-row
-		h2.pa-3 Please select your check-in and check-out dates
-		v-col.col-sm-6
-			v-date-picker(v-model="dates" range @change="setDates")
-		v-col.col-sm-6
-			v-text-field(v-model="checkInDate" label="Check-in Tarihi" prepend-icon="mdi-calendar" readonly)
-			v-text-field(v-model="checkOutDate" label="Check-out Tarihi" prepend-icon="mdi-calendar" readonly)
-			h3(v-if=" stayNights > 0") Nights of staying : {{ stayNights }} Nights
+		v-col.col-12
+			h1.pa-3 Lütfen tarih aralığını takvimden seçiniz
+			v-divider
+		
+		//- Date Picker
+		v-col.col-sm-7.col-12
+			v-date-picker(v-model="dates" elevation="2" locale="tr" range @change="setDates" color="primary")
+
+		//- Date Display
+		v-col.col-sm-5.col-12
+			v-text-field(v-model="checkInDate" label="Check-in Tarihi" color="primary" prepend-icon="mdi-calendar" readonly)
+			v-text-field(v-model="checkOutDate" label="Check-out Tarihi" color="primary" prepend-icon="mdi-calendar" readonly)
+			div.d-flex.justify-end
+				h3(v-if="stayNights > 0") {{ stayNights }} Gece
+
+		//- Navigation Buttons
 		v-col.d-flex.justify-end
 			v-btn.pa-3(color='primary' @click="dateValidation") ileri
-		v-dialog(v-model="dialog" width="500")
-			v-card
-				v-card-text 
-					h2.pa-3 Please select your check-in and check-out dates!
-					v-btn.pa-3(color="primary"  @click="dialog = false") OK!
+
 </template>
 
 <script>
-import * as _ from "lodash";
+import { mapState } from "vuex";
 export default {
   data() {
     return {
       dateRange: "",
       dates: [],
-      checkInDate: "",
-      checkOutDate: "",
+      // Getting data from store state after resetting data in the last step
+      checkInDate: _.get(this.reservationDetails, "checkInDate", null),
+      checkOutDate: _.get(this.reservationDetails, "checkOutDate", null),
       stayNights: 0,
       dialog: false,
     };
   },
+
+  computed: {
+    ...mapState({
+      reservationDetails: (state) => state.reservationDetails,
+    }),
+  },
+
   methods: {
     setDates() {
       let dates = this.dates.sort();
@@ -38,10 +51,16 @@ export default {
       this.stayNights = miliSecs / (1000 * 60 * 60) / 24;
     },
     dateValidation() {
-      if (_.isEmpty(this.dates) || this.dates.length < 2) {
-        this.dialog = true;
+      if (this.dates.length < 2) {
+        this.$emit("showDialog", { messages: ["Lütfen Check-in ve Check-out tarihlerini belirleyin!"] });
       } else {
-        this.$emit("nextStep", 2);
+        // Sending data to store
+        let details = {
+          checkInDate: this.checkInDate,
+          checkOutDate: this.checkOutDate,
+        };
+        this.$store.commit("updateReservationDetails", details);
+        this.$emit("stepNo", 2);
       }
     },
   },
