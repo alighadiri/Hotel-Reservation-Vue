@@ -8,7 +8,7 @@
 		//- Navigation Buttons
 		div.d-flex.justify-space-between
 			v-btn.pa-3.ma-3(color="primary" elevation="2" @click="$emit('stepNo', 2)")  Geri
-			v-btn.pa-3.ma-3(color="primary" elevation="2" @click="submit") ileri
+			v-btn.pa-3.ma-3(color="primary" elevation="2" @click="submit") Ödeme yap
 
 </template>
 
